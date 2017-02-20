@@ -37,4 +37,21 @@ extension String {
   func hexToByteArray() -> [UInt8] {
     return self.split(2).map() { UInt8(strtoul($0, nil, 16)) }
   }
+
+    func matches(regex: String) -> Bool {
+
+        do {
+            let regex = try NSRegularExpression(pattern: regex)
+            let nsString = self as NSString
+            let results = regex.matches(in: self, range: NSRange(location: 0, length: nsString.length))
+
+            return true
+        } catch let error {
+            assertionFailure("Invalid regex: \(error.localizedDescription)")
+
+            return false
+        }
+    }
 }
+
+

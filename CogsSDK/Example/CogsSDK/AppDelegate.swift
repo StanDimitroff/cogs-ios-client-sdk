@@ -73,8 +73,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     sleep(3)
     
     // set API_BASE_URL
-    GambitService.sharedGambitService.baseURL = "https://api.cogswell.io/"
-    
+    #if DEBUG
+        GambitService.sharedGambitService.baseURL = "https://gamqa-api.aviatainc.com/"
+        CogsPubSubService.sharedService.baseWSURL = "wss://gamqa-api.aviatainc.com/pubsub"
+    #else
+        GambitService.sharedGambitService.baseURL = "https://api.cogswell.io/"
+        CogsPubSubService.sharedPubSubService.baseWSURL = "wss://api.cogswell.io/pubsub"
+    #endif
+
     // Register the supported notification types.
     let types: UIUserNotificationType = [.badge, .sound, .alert]
     let userSettings = UIUserNotificationSettings(types: types, categories: nil)
@@ -90,7 +96,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         application.registerForRemoteNotifications()
     }
   }
-  
+
   func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
     
     if let queryString = url.getKeyVals() {
@@ -199,14 +205,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   }
   
   // MARK: Notifications
-  
   func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-//    let deviceTokenString =
-//      deviceToken.description.replacingOccurrences(of: "<", with: "")
-//      .replacingOccurrences(of: ">", with: "")
-//        .replacingOccurrences(of: " ", with: "")
-    let deviceTokenString = deviceToken.reduce("", { $0 + String(format: "%02X", $1) })
-    print(deviceTokenString)
+    let deviceTokenString = deviceToken.reduce("", {$0 + String(format: "%02X", $1)})
+
+    DeviceTokenString = deviceTokenString
+
+    print(DeviceTokenString)
 
 
     #if DEBUG
@@ -214,11 +218,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     #else
       Environment = "production"
     #endif
-    
-    DeviceTokenString = deviceTokenString
-    print("Environment: \(Environment)")
-    
-   // print("My Token is: \(deviceTokenString)")
+
+    print(Environment)
   }
   
   func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
@@ -248,7 +249,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
           catch {
             print("Attributes Error! Invalid Attributes JSON.")
           }
-
         }
       } else {
         print("missing message ID")

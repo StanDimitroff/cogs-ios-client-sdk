@@ -28,11 +28,29 @@ open class GambitResponseMessage: GambitResponse {
   
   public required init(json: JSON) throws {
     guard let msg = json["message"] as? String else {
-      throw NSError(domain: "GambitSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+      throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
     }
     
     self.message = msg
   }
+}
+
+open class CogsResponseError:  GambitResponse {
+    open fileprivate(set) var message: String = ""
+    open fileprivate(set) var description: String = ""
+
+    public required init(json: JSON) throws {
+        guard let msg = json["error_message"] as? String else {
+            throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+        }
+
+        guard let desc = json["details"] as? String else {
+            throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+        }
+
+        self.message = msg
+        self.description = desc
+    }
 }
 
 open class GambitMessageResponse: GambitResponse, CustomStringConvertible {
@@ -53,37 +71,37 @@ open class GambitMessageResponse: GambitResponse, CustomStringConvertible {
   
   public required init(json: JSON) throws {
     guard let msg = json["message"] as? String else {
-      throw NSError(domain: "GambitSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+      throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
     }
 
     let messageJSON: JSON? = try! JSONSerialization.jsonObject(with: msg.data(using: String.Encoding.utf8)!, options: .allowFragments) as? JSON
 
     guard let j = messageJSON else {
-         throw NSError(domain: "GambitSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Message data is NULL"])
+         throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Message data is NULL"])
     }
     
     guard let namespace = j["namespace"] as? String else {
-      throw NSError(domain: "GambitSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+      throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
     }
 
     guard let campaignID = j["campaign_id"] as? Int else {
-      throw NSError(domain: "GambitSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+      throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
     }
 
     guard let campaignName = j["campaign_name"] as? String else {
-      throw NSError(domain: "GambitSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+      throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
     }
 
     guard let ciidHash = j["ciid_hash"] as? String else {
-      throw NSError(domain: "GambitSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+      throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
     }
 
     guard let eventName = j["event_name"] as? String else {
-      throw NSError(domain: "GambitSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+      throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
     }
 
     guard let messageID = j["message_id"] as? String else {
-      throw NSError(domain: "GambitSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+      throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
     }
 
     self.namespace      = namespace
@@ -96,13 +114,13 @@ open class GambitMessageResponse: GambitResponse, CustomStringConvertible {
     self.notificationMsg = j["notification_message"] as? String
 
     guard let data = j["data"] as? String else {
-        throw NSError(domain: "GambitSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+        throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
     }
 
     let dataJSON: JSON? = try JSONSerialization.jsonObject(with: data.data(using: String.Encoding.utf8)!, options: .allowFragments) as? JSON
 
     guard let d = dataJSON else {
-        throw NSError(domain: "GambitSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+        throw NSError(domain: "CogsSDKError - ResponseMessage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
     }
       
     self.accessKey      = d["access_key"] as? String
@@ -149,3 +167,4 @@ open class GambitMessageResponse: GambitResponse, CustomStringConvertible {
 
 public typealias GambitResponseEvent = GambitResponseMessage
 public typealias GambitResponsePush = GambitResponseMessage
+

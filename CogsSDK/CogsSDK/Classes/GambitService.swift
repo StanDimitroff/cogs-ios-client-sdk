@@ -18,10 +18,10 @@
 import Foundation
 import CryptoSwift
 
-private let EventEndpoint = "event"
-private let RegisterPushEndpoint = "register_push"
+private let EventEndpoint          = "event"
+private let RegisterPushEndpoint   = "register_push"
 private let UnregisterPushEndpoint = "unregister_push"
-private let MessageEndpoint = "message"
+private let MessageEndpoint        = "message"
 
 /// Singleton class used for all SDK services
 public class GambitService {
@@ -30,14 +30,14 @@ public class GambitService {
   private let sharedSession: URLSession
   
     /// API base URL
-  public var baseURL : String?
-  
-  private init() {
+  public var baseURL: String?
+
     /*
-      A Private initializer prevents any other part of the app
-      from creating an instance.
-    */
-    
+     A Private initializer prevents any other part of the app
+     from creating an instance.
+     */
+
+  private init() {
     let sessionConfiguration = URLSessionConfiguration.default
     sessionConfiguration.timeoutIntervalForRequest = 30.0
     sharedSession = URLSession(configuration: sessionConfiguration)
@@ -61,7 +61,7 @@ public class GambitService {
     var request = Request(urlString: baseURL + EventEndpoint, method: .POST)
     
     var params = [String: AnyObject]()
-    params["timestamp"]     = getTimestamps() as AnyObject?
+    params["timestamp"]     = Date().toISO8601 as AnyObject?
     params["access_key"]    = gambitRequest.accessKey as AnyObject?
     params["client_salt"]   = gambitRequest.clientSalt as AnyObject?
     params["event_name"]    = gambitRequest.eventName as AnyObject?
@@ -85,7 +85,7 @@ public class GambitService {
     let body = String(request.getBody())
     let bodyBuffer = [UInt8](body.utf8)
     let clientSecretBuffer = gambitRequest.clientSecret.hexToByteArray()
-    let hmac = try! HMAC(key: clientSecretBuffer, variant: .sha256).authenticate(bodyBuffer)
+    let hmac: [UInt8] = try! HMAC(key: clientSecretBuffer, variant: .sha256).authenticate(bodyBuffer)
     
     request.setPayloadHmac(hmac.toHexString())
     
@@ -112,7 +112,7 @@ public class GambitService {
 
     var request = Request(urlString: baseURL + RegisterPushEndpoint, method: .POST)
     request.setParams(params: [
-      "timestamp": getTimestamps() as AnyObject,
+      "timestamp": Date().toISO8601 as AnyObject,
       "client_salt": gambitRequest.clientSalt as AnyObject,
       "udid": gambitRequest.UDID as AnyObject,
       "access_key": gambitRequest.accessKey as AnyObject,
@@ -150,7 +150,7 @@ public class GambitService {
 
     var request = Request(urlString: baseURL + UnregisterPushEndpoint, method: .DELETE)
     request.setParams(params: [
-      "timestamp": getTimestamps() as AnyObject,
+      "timestamp": Date().toISO8601 as AnyObject,
       "client_salt": gambitRequest.clientSalt as AnyObject,
       "udid": gambitRequest.UDID as AnyObject,
       "access_key": gambitRequest.accessKey as AnyObject,
@@ -192,7 +192,7 @@ public class GambitService {
       "client_salt": gambitRequest.clientSalt,
       "namespace": gambitRequest.namespace,
       "attributes": gambitRequest.attributes,
-      "timestamp": getTimestamps()
+      "timestamp": Date().toISO8601
     ] as [String : Any]
     
     var b64String: String?
@@ -216,17 +216,6 @@ public class GambitService {
     
     let task = sharedSession.dataTask(with: request.urlRequest, completionHandler: completionHandler)
     task.resume()
-  }
-  
-  // MARK: Utilities
-  private func getTimestamps() -> String {
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZ"
-    dateFormatter.timeZone   = TimeZone(secondsFromGMT: 0)
-    dateFormatter.calendar   = Calendar(identifier: .iso8601)
-    dateFormatter.locale     = Locale(identifier: "en_US_POSIX")
-    
-    return dateFormatter.string(from: Date())
   }
 }
 

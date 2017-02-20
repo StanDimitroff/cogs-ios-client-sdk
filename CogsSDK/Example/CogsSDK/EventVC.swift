@@ -27,6 +27,7 @@ class EventVC: ViewController {
   @IBOutlet weak var namespaceTextField: UITextField!
   @IBOutlet weak var attributesTextView: UITextView!
   @IBOutlet weak var label: UILabel!
+    
   var directive: String?
     
   @IBAction func executeTapped(_ sender: UIBarButtonItem) {
@@ -54,6 +55,7 @@ class EventVC: ViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    
     self.readInputFieldsData()
   }
   
@@ -109,19 +111,21 @@ class EventVC: ViewController {
     
     view.isUserInteractionEnabled = false
     service.requestEvent(request) { (data, response, error) -> Void in
-      do {
+
         guard let data = data else {
-          // handle missing data response error
-          DispatchQueue.main.async {
-            var msg = "Request Failed"
-            if let er = error {
-              msg += ": \(er.localizedDescription)"
+            // handle missing data response error
+            DispatchQueue.main.async {
+                var msg = "Request Failed"
+                if let er = error {
+                    msg += ": \(er.localizedDescription)"
+                }
+                self.openAlertWithMessage(message: msg, title: "Error")
             }
-            self.openAlertWithMessage(message: msg, title: "Error")
-          }
-          return
+
+            return
         }
-        
+
+      do {
         let json: JSON = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as JSON
         print("JSON: \(json)")
         let parsedData = try GambitResponseEvent(json: json)
@@ -131,6 +135,19 @@ class EventVC: ViewController {
           self.view.isUserInteractionEnabled = true
         }
       } catch {
+        do {
+            let json: JSON = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as JSON
+            let responseError = try CogsResponseError(json: json)
+
+            DispatchQueue.main.async {
+                self.openAlertWithMessage(message: responseError.description, title: responseError.message)
+            }
+        } catch {
+            DispatchQueue.main.async {
+                self.openAlertWithMessage(message: "\(error)", title: "Error")
+                self.view.isUserInteractionEnabled = true
+            }
+        }
         // handle catched errors
         DispatchQueue.main.async {
           self.openAlertWithMessage(message: "\(error)", title: "Error")
@@ -165,16 +182,16 @@ class EventVC: ViewController {
   fileprivate func readInputFieldsData(){
     let prefs = UserDefaults.standard
     if let accessKey = prefs.string(forKey: "accessKey") {
-      self.accessKeyTextField.text = "d1ba3f56cf5441fcbdd1ed417c76e890" //accessKey
+      self.accessKeyTextField.text = "f78d976d21dd83d957a8c6f0b1688d62" //accessKey
     }
     if let clientSalt = prefs.string(forKey: "clientSalt") {
-        self.clientSaltTextField.text = "bc9acd2c150603d11a9a765abc715c672070b759d43d364f883ee568c454c7db" //clientSalt
+        self.clientSaltTextField.text = "5b8db085525c78ab8fae70c7ed82a30584a442a0fed159ee09c529312342cc6f" //clientSalt
     }
     if let clientSecret = prefs.string(forKey: "clientSecret") {
-        self.clientSecretTextField.text = "5bb5d189fc742cbaa5779d05bc28f999bca04fc430ba8b78691d917cab36d95a" //clientSecret
+        self.clientSecretTextField.text = "87aa24a167944f961493b811bc3e2d517d23c5ce81520fa7144a6ed3bd14822d" //clientSecret
     }
     if let campaignID = prefs.string(forKey: "campaignID") {
-      self.campaignIDTextField.text = campaignID
+      self.campaignIDTextField.text = "633"//campaignID
     }
     if let eventName = prefs.string(forKey: "eventName") {
       self.eventNameTextField.text = "Test Event" //eventName
@@ -183,7 +200,7 @@ class EventVC: ViewController {
       self.namespaceTextField.text = "CogsSDKExample" //namespaceName
     }
     if let attributesList = prefs.string(forKey: "attributesList") {
-        self.attributesTextView.text = "{\"bool_attribite\": true, \"client_id_u\": 1, \"client_name\": \"TEST\", \"gender\": \"male\", \"neshto\": \"helloo\", \"test_attr\": \"mest\"}"//"{\"customer_id\": 1, \"email\": \"standimitroff@gmail.com\"}" //attributesList
+        self.attributesTextView.text = "{ \"customer_id\": 1, \"email\": \"standimitroff@gmail.com\" }" //"{\"bool_attribite\": true, \"client_id_u\": 1, \"client_name\": \"TEST\", \"gender\": \"male\", \"neshto\": \"helloo\", \"test_attr\": \"mest\"}"// //attributesList
     }
   }
 }

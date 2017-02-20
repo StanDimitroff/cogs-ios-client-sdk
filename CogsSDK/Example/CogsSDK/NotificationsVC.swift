@@ -63,7 +63,7 @@ class NotificationsVC: ViewController {
       service.registerPush(request, completionHandler: self.completionHandler)
     }
     
-    //unregister previous topic if existing
+    // unregister previous topic if existing
     if let registeredPush = prefs.value(forKey: "registeredPush") as? [String: AnyObject] {
       let req = GambitRequestPush(
         clientSalt: registeredPush["clientSalt"] as! String,
@@ -104,23 +104,26 @@ class NotificationsVC: ViewController {
   
   
   fileprivate func completionHandler(_ data: Data?, response: URLResponse?, error: Error?) {
+
+    guard let data = data else {
+        DispatchQueue.main.async {
+            var msg = "Request Failed"
+            if let er = error {
+                msg += ": \(er.localizedDescription)"
+            }
+
+            self.openAlertWithMessage(message: msg, title: "Error")
+        }
+
+        return
+    }
+
     do {
       
       //uncomment to log raw response
 //      let datastring = NSString(data: data!, encoding:NSUTF8StringEncoding)
 //      print("result:",datastring)
-      
-      guard let data = data else {
-        DispatchQueue.main.async {
-          var msg = "Request Failed"
-          if let er = error {
-            msg += ": \(er.localizedDescription)"
-          }
-          self.openAlertWithMessage(message: msg, title: "Error")
-        }
-        return
-      }
-      
+
       let json: JSON = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as JSON
       print(json)
       let pushResponse = try GambitResponsePush(json: json)
@@ -128,11 +131,19 @@ class NotificationsVC: ViewController {
       DispatchQueue.main.async {
         self.successfulRequestResponse(pushResponse.message)
       }
-      
     } catch {
-      DispatchQueue.main.async {
-        self.openAlertWithMessage(message: "\(error)", title: "Error")
-      }
+        do {
+            let json: JSON = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as JSON
+            let responseError = try CogsResponseError(json: json)
+
+            DispatchQueue.main.async {
+                self.openAlertWithMessage(message: responseError.description, title: responseError.message)
+            }
+        } catch {
+            DispatchQueue.main.async {
+                self.openAlertWithMessage(message: "\(error)", title: "Error")
+            }
+        }
     }
     
     DispatchQueue.main.async {
@@ -185,7 +196,6 @@ class NotificationsVC: ViewController {
         .jsonObject(with: attributesTextView.text.data(using: String.Encoding.utf8)!, options: .allowFragments)
       guard let attributes = jsonAtts as? [String: AnyObject] else { return }
 
-      
       let request = GambitRequestPush(
         clientSalt: clientSalt,
         clientSecret: clientSecret,

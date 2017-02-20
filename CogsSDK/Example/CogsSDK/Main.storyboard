@@ -6,6 +6,7 @@
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="Navigation items with more than one left or right bar item" minToolsVersion="7.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -40,10 +41,21 @@
                                     <segue destination="ok7-ZF-Qwz" kind="show" id="gz2-yd-l8B"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dHH-iW-oLq">
+                                <rect key="frame" x="127" y="413" width="120" height="30"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                                <state key="normal" title="WSS Messaging"/>
+                                <connections>
+                                    <segue destination="E1O-12-LuY" kind="show" id="g2k-pV-rp0"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="dHH-iW-oLq" firstAttribute="top" secondItem="Wvp-a0-oIk" secondAttribute="bottom" constant="17" id="ERm-w7-6GA"/>
                             <constraint firstItem="Wvp-a0-oIk" firstAttribute="leading" secondItem="eSP-g4-gSW" secondAttribute="leading" id="HOU-vN-Q8Q"/>
+                            <constraint firstItem="dHH-iW-oLq" firstAttribute="trailing" secondItem="Wvp-a0-oIk" secondAttribute="trailing" id="OnO-Xf-NlW"/>
+                            <constraint firstItem="dHH-iW-oLq" firstAttribute="leading" secondItem="Wvp-a0-oIk" secondAttribute="leading" id="QlR-gF-zDP"/>
                             <constraint firstItem="Wvp-a0-oIk" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Ss4-Jx-N06"/>
                             <constraint firstItem="Wvp-a0-oIk" firstAttribute="top" secondItem="eSP-g4-gSW" secondAttribute="bottom" constant="17" id="kds-Qt-f2c"/>
                             <constraint firstItem="Wvp-a0-oIk" firstAttribute="trailing" secondItem="eSP-g4-gSW" secondAttribute="trailing" id="pxR-eS-vYW"/>
@@ -554,6 +566,53 @@ for example:
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Nvx-wk-5DK" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="756" y="1778"/>
+        </scene>
+        <!--WSS Messaging-->
+        <scene sceneID="rju-Wr-bsj">
+            <objects>
+                <viewController id="E1O-12-LuY" customClass="WSSMessagingVC" customModule="CogsSDK_Example" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="lx2-ZD-18g"/>
+                        <viewControllerLayoutGuide type="bottom" id="cw4-fY-Ywc"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="6p5-sj-ceX">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Status" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OG6-yS-qYZ">
+                                <rect key="frame" x="166" y="84" width="44" height="18"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="OG6-yS-qYZ" firstAttribute="centerX" secondItem="6p5-sj-ceX" secondAttribute="centerX" id="0DQ-ce-Vdd"/>
+                            <constraint firstItem="OG6-yS-qYZ" firstAttribute="top" secondItem="lx2-ZD-18g" secondAttribute="bottom" constant="20" id="h81-o6-Xkj"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" title="WSS Messaging" id="emi-vf-6Am">
+                        <rightBarButtonItems>
+                            <barButtonItem title="Disconnect" id="IsC-V1-4N5">
+                                <connections>
+                                    <action selector="disconnectWS:" destination="E1O-12-LuY" id="O3g-DN-6kB"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem title="Connect" id="PP9-kh-qO1">
+                                <connections>
+                                    <action selector="connectWS:" destination="E1O-12-LuY" id="5Gp-8P-iAQ"/>
+                                </connections>
+                            </barButtonItem>
+                        </rightBarButtonItems>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="statusLabel" destination="OG6-yS-qYZ" id="krr-vZ-YXf"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="yJ3-ed-Hjx" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1470" y="1778"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="9jm-U3-X7u">
