@@ -74,11 +74,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     // set API_BASE_URL
     #if DEBUG
-        GambitService.sharedGambitService.baseURL = "https://gamqa-api.aviatainc.com/"
-        CogsPubSubService.sharedService.baseWSURL = "wss://gamqa-api.aviatainc.com/pubsub"
+        GambitService.sharedGambitService.baseURL = nil
+        CogsPubSubService.sharedService.baseWSURL = nil
     #else
-        GambitService.sharedGambitService.baseURL = "https://api.cogswell.io/"
-        CogsPubSubService.sharedPubSubService.baseWSURL = "wss://api.cogswell.io/pubsub"
+        GambitService.sharedGambitService.baseURL = nil
+        CogsPubSubService.sharedPubSubService.baseWSURL = nil
     #endif
 
     // Register the supported notification types.

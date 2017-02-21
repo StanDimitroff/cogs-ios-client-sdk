@@ -5,34 +5,93 @@ import CogsSDK
 class WSSMessagingVC: ViewController {
     
     @IBOutlet weak var statusLabel: UILabel!
-
-    @IBAction func connectWS(_ sender: UIBarButtonItem) {
-        let keys: [String] = [
-            "R-6481112d4758dc51c59360ca7124742b-8ee36ea80f02ff9762f9b4dc62e79e5c8c5e23c11acd9beccad99fee10bfb690",
-            "W-6481112d4758dc51c59360ca7124742b-e15d6a5a1bd755b5a37abcb6f10230e44bf08a05196881b70adf28112f80dc83",
-            "A-6481112d4758dc51c59360ca7124742b-6f00499e82c694d97d3096f37ed63e136f86170c99ce736a869558806f8e42f42e4b158a4093ead428bb36b36dbff1623f7ca784e079c3783382333b5db58e51"
-        ]
-
-        CogsPubSubService.sharedService.connect(keys: keys)
-    }
-
-    @IBAction func disconnectWS(_ sender: UIBarButtonItem) {
-        CogsPubSubService.sharedService.disconnect()
-    }
+    @IBOutlet weak var sessionUUIDLabel: UILabel!
+    @IBOutlet weak var channelNameTextField: UITextField!
+    @IBOutlet weak var channelListLabel: UILabel!
+    @IBOutlet weak var messageTextView: UITextView!
+    @IBOutlet weak var messageChannelTextField: UITextField!
+    @IBOutlet weak var ackSwitch: UISwitch!
+    @IBOutlet weak var receivedMessageLabel: UILabel!
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        CogsPubSubService.sharedService.delegate = self
-    }
-}
-
-extension WSSMessagingVC: CogsPubSubServiceDelegate {
-    func socketDidConnect() {
-        statusLabel.text = "Socket connected"
     }
 
-    func socketDidDisconnect() {
-        statusLabel.text = "Socket disconnected"
+    @IBAction func connectWS(_ sender: UIBarButtonItem) {
+        let keys: [String] = [
+            "R-*-*",
+            "W-*-*",
+            "A-*-*"
+        ]
+
+        CogsPubSubService.sharedService.connect(keys: keys) {
+            DispatchQueue.main.async {
+                self.statusLabel.text = "Service is connected"
+            }
+        }
+    }
+
+    @IBAction func disconnectWS(_ sender: UIBarButtonItem) {
+        CogsPubSubService.sharedService.disconnect() {
+            DispatchQueue.main.async {
+                self.statusLabel.text = "Service is disconnected"
+            }
+        }
+    }
+
+    @IBAction func getSessionUUID(_ sender: UIButton) {
+        CogsPubSubService.sharedService.getSessionUUID() { id in
+            DispatchQueue.main.async {
+                self.sessionUUIDLabel.text = id
+            }
+        }
+    }
+
+    @IBAction func subscribeToChannel(_ sender: UIButton) {
+        guard let channelName = channelNameTextField.text, !channelName.isEmpty else { return }
+
+        CogsPubSubService.sharedService.subsribeToChannel(channelName: channelName) { channels in
+            DispatchQueue.main.async {
+                self.channelListLabel.text = channels.joined(separator: "\n")
+            }
+        }
+    }
+
+    @IBAction func unsubscribeFromCahnnel(_ sender: UIButton) {
+        guard let channelName = channelNameTextField.text, !channelName.isEmpty else { return }
+
+        CogsPubSubService.sharedService.unsubsribeFromChannel(channelName: channelName) { channels in
+            DispatchQueue.main.async {
+                self.channelListLabel.text = channels.joined(separator: "\n")
+            }
+        }
+    }
+
+    @IBAction func getAllSubscriptions(_ sender: UIButton) {
+        CogsPubSubService.sharedService.getAllSubscriptions { channels in
+            DispatchQueue.main.async {
+                self.channelListLabel.text = channels.joined(separator: "\n")
+            }
+        }
+    }
+
+    @IBAction func unsubscribeFromAll(_ sender: UIButton) {
+        CogsPubSubService.sharedService.unsubsribeFromAllChannels { channels in
+            DispatchQueue.main.async {
+                self.channelListLabel.text = channels.joined(separator: "\n")
+            }
+        }
+    }
+
+    @IBAction func publishMessage(_ sender: UIButton) {
+        guard let channel = channelNameTextField.text, !channel.isEmpty else { return }
+        let messageText = messageTextView.text!
+        let ack = ackSwitch.isOn
+        
+        CogsPubSubService.sharedService.publishMessage(channelName: channel, message: messageText, acknowledgement: ack) { receivedMessage in
+            DispatchQueue.main.async {
+                self.receivedMessageLabel.text = receivedMessage.message
+            }
+        }
     }
 }
