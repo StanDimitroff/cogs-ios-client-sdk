@@ -3,7 +3,12 @@ import Foundation
 import CogsSDK
 
 class WSSMessagingVC: ViewController {
-    
+
+    @IBOutlet weak var urlTextField: UITextField!
+    @IBOutlet weak var readKeyTextField: UITextField!
+    @IBOutlet weak var writeKeyTextField: UITextField!
+    @IBOutlet weak var adminKeyTextField: UITextField!
+
     @IBOutlet weak var statusLabel: UILabel!
     @IBOutlet weak var sessionUUIDLabel: UILabel!
     @IBOutlet weak var channelNameTextField: UITextField!
@@ -14,10 +19,19 @@ class WSSMessagingVC: ViewController {
     @IBOutlet weak var receivedMessageLabel: UILabel!
     @IBOutlet weak var acknowledgeLabel: UILabel!
 
-    fileprivate var pubSubService = CogsPubSubService(options: nil)
+    fileprivate var pubSubService: CogsPubSubService!
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+
+    }
+
+    @IBAction func connectWS(_ sender: UIBarButtonItem) {
+        guard let url = urlTextField.text else { return }
+
+        let pubSubService = CogsPubSubService(options: PubSubOptions(url: url, timeout: 30, autoReconnect: true))
+        self.pubSubService = pubSubService
 
         pubSubService.onNewSession = {
             DispatchQueue.main.async {
@@ -36,24 +50,31 @@ class WSSMessagingVC: ViewController {
                 self.statusLabel.text = "Service is disconnected"
             }
         }
-    }
+//        let keys: [String] = [
+//            "R-*-*",
+//            "W-*-*",
+//            "A-*-*"
+//        ]
 
-    @IBAction func connectWS(_ sender: UIBarButtonItem) {
-        let keys: [String] = [
-            "R-6481112d4758dc51c59360ca7124742b-8ee36ea80f02ff9762f9b4dc62e79e5c8c5e23c11acd9beccad99fee10bfb690",
-            "W-6481112d4758dc51c59360ca7124742b-e15d6a5a1bd755b5a37abcb6f10230e44bf08a05196881b70adf28112f80dc83",
-            "A-6481112d4758dc51c59360ca7124742b-6f00499e82c694d97d3096f37ed63e136f86170c99ce736a869558806f8e42f42e4b158a4093ead428bb36b36dbff1623f7ca784e079c3783382333b5db58e51"
-        ]
+        guard let readKey = readKeyTextField.text else { return }
+        guard let writeKey = writeKeyTextField.text else { return }
+        guard let adminKey = adminKeyTextField.text else { return }
+
+        let keys: [String] = [readKey, writeKey, adminKey]
 
         pubSubService.connect(keys: keys, sessionUUID: nil)
     }
 
     @IBAction func disconnectWS(_ sender: UIBarButtonItem) {
-        pubSubService.close()
+        guard let service = pubSubService else { return }
+
+        service.close()
     }
 
     @IBAction func getSessionUUID(_ sender: UIButton) {
-        pubSubService.getSessionUuid() { json in
+        guard let service = pubSubService else { return }
+
+        service.getSessionUuid() { json in
             do {
                 let id = try PubSubResponseUUID(json: json)
                 DispatchQueue.main.async {
@@ -76,13 +97,14 @@ class WSSMessagingVC: ViewController {
 
     @IBAction func subscribeToChannel(_ sender: UIButton) {
         guard let channelName = channelNameTextField.text, !channelName.isEmpty else { return }
+        guard let service = pubSubService else { return }
 
-        pubSubService.subscribe(channelName: channelName) { json in
+        service.subscribe(channelName: channelName) { json in
 
             do {
                 let subscription = try PubSubResponseSubscription(json: json)
                 DispatchQueue.main.async {
-                    self.channelListLabel.text = subscription.channels.joined(separator: "\n")
+                    self.channelListLabel.text = subscription.channels.joined(separator: ", ")
                 }
             } catch {
                 do {
@@ -101,12 +123,13 @@ class WSSMessagingVC: ViewController {
 
     @IBAction func unsubscribeFromCahnnel(_ sender: UIButton) {
         guard let channelName = channelNameTextField.text, !channelName.isEmpty else { return }
+        guard let service = pubSubService else { return }
 
-        pubSubService.unsubsribe(channelName: channelName) { json in
+        service.unsubsribe(channelName: channelName) { json in
             do {
                 let subscription = try PubSubResponseSubscription(json: json)
                 DispatchQueue.main.async {
-                    self.channelListLabel.text = subscription.channels.joined(separator: "\n")
+                    self.channelListLabel.text = subscription.channels.joined(separator: ", ")
                 }
             } catch {
                 do {
@@ -124,11 +147,13 @@ class WSSMessagingVC: ViewController {
     }
 
     @IBAction func getAllSubscriptions(_ sender: UIButton) {
-        pubSubService.listSubscriptions { json in
+        guard let service = pubSubService else { return }
+
+        service.listSubscriptions { json in
             do {
                 let subscription = try PubSubResponseSubscription(json: json)
                 DispatchQueue.main.async {
-                    self.channelListLabel.text = subscription.channels.joined(separator: "\n")
+                    self.channelListLabel.text = subscription.channels.joined(separator: ", ")
                 }
             } catch {
                 do {
@@ -146,11 +171,13 @@ class WSSMessagingVC: ViewController {
     }
 
     @IBAction func unsubscribeFromAll(_ sender: UIButton) {
-        pubSubService.unsubscribeAll{ json in
+        guard let service = pubSubService else { return }
+
+        service.unsubscribeAll{ json in
             do {
                 let subscription = try PubSubResponseSubscription(json: json)
                 DispatchQueue.main.async {
-                    self.channelListLabel.text = subscription.channels.joined(separator: "\n")
+                    self.channelListLabel.text = subscription.channels.joined(separator: ", ")
                 }
 
             } catch {
@@ -173,8 +200,10 @@ class WSSMessagingVC: ViewController {
         let messageText = messageTextView.text!
         let ack = ackSwitch.isOn
 
+        guard let service = pubSubService else { return }
+
         if ack {
-            pubSubService.publishWithAck(channelName: channel, message: messageText) { json in
+            service.publishWithAck(channelName: channel, message: messageText) { json in
                 do {
                     let receivedMessage = try PubSubMessage(json: json)
                     DispatchQueue.main.async {
@@ -201,7 +230,7 @@ class WSSMessagingVC: ViewController {
                 }
             }
         } else {
-            pubSubService.publish(channelName: channel, message: messageText) { json in
+            service.publish(channelName: channel, message: messageText) { json in
                 do {
                     let receivedMessage = try PubSubMessage(json: json)
                     DispatchQueue.main.async {

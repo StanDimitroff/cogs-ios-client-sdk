@@ -15,5 +15,5 @@ open class PubSubOptions {
         self.autoReconnect     = autoReconnect
     }
 
-    public static let defaultOptions: PubSubOptions = PubSubOptions(url: "wss://gamqa-api.aviatainc.com/pubsub", timeout: 30, autoReconnect: true)
+//    public static let defaultOptions: PubSubOptions = PubSubOptions(url: "", timeout: 30, autoReconnect: true)
 }

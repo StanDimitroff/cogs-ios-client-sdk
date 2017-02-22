@@ -12,13 +12,16 @@ public class CogsPubSubService {
     private var keys: [String]!
     private var sessionUUID: String?
     private var sequence: Int = 0
+    
     public var onNewSession: (() -> ())!
     public var onReconnect: (() -> ())!
     public var onDisconnect: (() -> ())!
 
-    public init(options: PubSubOptions?) {
+    public init(options: PubSubOptions) {
 
-        self.options = options ?? PubSubOptions.defaultOptions
+        //self.options = options ?? PubSubOptions.defaultOptions
+        self.options = options
+        
         webSocket = WebSocket(url: URL(string: self.options.url)!)
         webSocket.timeout = self.options.connectionTimeout
 
