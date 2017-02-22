@@ -691,11 +691,17 @@ for example:
                                 <rect key="frame" x="129.5" y="490.5" width="116" height="30"/>
                                 <state key="normal" title="Publish message"/>
                                 <connections>
-                                    <action selector="publishMessage:" destination="E1O-12-LuY" eventType="touchUpInside" id="xTr-Cy-aBW"/>
+                                    <action selector="publishMessage:" destination="E1O-12-LuY" eventType="touchUpInside" id="4B2-SL-FTi"/>
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Received message:" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qGq-zO-JMf">
                                 <rect key="frame" x="8" y="540.5" width="359" height="18"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Acknowledge:" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ro8-4a-5QP">
+                                <rect key="frame" x="8" y="588.5" width="359" height="18"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
@@ -719,6 +725,7 @@ for example:
                             <constraint firstItem="xwt-TX-uLb" firstAttribute="leading" secondItem="6p5-sj-ceX" secondAttribute="leading" constant="8" id="Yif-yb-VeF"/>
                             <constraint firstItem="yDY-nE-GeK" firstAttribute="leading" secondItem="xwt-TX-uLb" secondAttribute="leading" id="Yl8-Nu-a4P"/>
                             <constraint firstItem="yDY-nE-GeK" firstAttribute="trailing" secondItem="xwt-TX-uLb" secondAttribute="trailing" id="ZLf-XJ-7eq"/>
+                            <constraint firstItem="ro8-4a-5QP" firstAttribute="trailing" secondItem="qGq-zO-JMf" secondAttribute="trailing" id="ZpN-vj-uLw"/>
                             <constraint firstItem="2lw-fC-NtF" firstAttribute="trailing" secondItem="Fap-0m-Hi3" secondAttribute="trailing" id="a00-Kj-jXk"/>
                             <constraint firstAttribute="trailing" secondItem="Fap-0m-Hi3" secondAttribute="trailing" constant="15" id="cu5-Rg-Q4Q"/>
                             <constraint firstItem="OG6-yS-qYZ" firstAttribute="top" secondItem="lx2-ZD-18g" secondAttribute="bottom" constant="20" id="h81-o6-Xkj"/>
@@ -729,8 +736,10 @@ for example:
                             <constraint firstItem="nOg-Qt-LEI" firstAttribute="leading" secondItem="2lw-fC-NtF" secondAttribute="leading" id="rbN-BR-bcx"/>
                             <constraint firstItem="X2T-kR-cfC" firstAttribute="leading" secondItem="kDv-ey-CEU" secondAttribute="trailing" constant="20" id="sFB-Pm-ftz"/>
                             <constraint firstItem="Fap-0m-Hi3" firstAttribute="leading" secondItem="6p5-sj-ceX" secondAttribute="leading" constant="15" id="tfH-ei-nia"/>
+                            <constraint firstItem="ro8-4a-5QP" firstAttribute="top" secondItem="qGq-zO-JMf" secondAttribute="bottom" constant="30" id="uDd-AM-vAS"/>
                             <constraint firstItem="qGq-zO-JMf" firstAttribute="trailing" secondItem="yDY-nE-GeK" secondAttribute="trailing" id="vEp-Tt-HTB"/>
                             <constraint firstItem="qh0-A0-1nD" firstAttribute="centerX" secondItem="6p5-sj-ceX" secondAttribute="centerX" id="ymP-CX-v4f"/>
+                            <constraint firstItem="ro8-4a-5QP" firstAttribute="leading" secondItem="qGq-zO-JMf" secondAttribute="leading" id="z2q-mt-KDE"/>
                             <constraint firstItem="nOg-Qt-LEI" firstAttribute="top" secondItem="Onl-3D-NXc" secondAttribute="bottom" constant="10" id="zN4-cX-zuG"/>
                         </constraints>
                     </view>
@@ -750,6 +759,7 @@ for example:
                     </navigationItem>
                     <connections>
                         <outlet property="ackSwitch" destination="X2T-kR-cfC" id="dux-bg-UqZ"/>
+                        <outlet property="acknowledgeLabel" destination="ro8-4a-5QP" id="erb-i1-JSC"/>
                         <outlet property="channelListLabel" destination="pzK-Fw-CKp" id="aGr-pv-TFG"/>
                         <outlet property="channelNameTextField" destination="2lw-fC-NtF" id="Whx-Vc-4Nd"/>
                         <outlet property="messageChannelTextField" destination="yDY-nE-GeK" id="X5p-5A-Wx2"/>
