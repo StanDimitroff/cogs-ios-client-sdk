@@ -20,61 +20,60 @@ class WSSMessagingVC: ViewController {
     @IBOutlet weak var acknowledgeLabel: UILabel!
 
     fileprivate var pubSubService: CogsPubSubService!
+    fileprivate var connectionHandler: ConnectionHandle!
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
 
     }
 
     @IBAction func connectWS(_ sender: UIBarButtonItem) {
         guard let url = urlTextField.text else { return }
-
-        let pubSubService = CogsPubSubService(options: PubSubOptions(url: url, timeout: 30, autoReconnect: true))
-        self.pubSubService = pubSubService
-
-        pubSubService.onNewSession = {
+        
+        guard let readKey = readKeyTextField.text else { return }
+        guard let writeKey = writeKeyTextField.text else { return }
+        guard let adminKey = adminKeyTextField.text else { return }
+        
+        let keys: [String] = [readKey, writeKey, adminKey]
+        
+        let pubSubService = CogsPubSubService()
+        let connectionHandler = pubSubService.connnect(keys: keys,
+                                                        options: PubSubOptions(url: url,
+                                                                               timeout: 30,
+                                                                               autoReconnect: true))
+        self.connectionHandler = connectionHandler
+        
+        connectionHandler.onNewSession = { sessionUUID in
             DispatchQueue.main.async {
-                self.statusLabel.text = "New session is opened"
+                self.statusLabel.text = "New session with uuid \(sessionUUID) is opened"
             }
         }
 
-        pubSubService.onReconnect = {
+        connectionHandler.onReconnect = {
             DispatchQueue.main.async {
                 self.statusLabel.text = "Session is restored"
             }
         }
 
-        pubSubService.onDisconnect = {
+        connectionHandler.onClose = {
             DispatchQueue.main.async {
                 self.statusLabel.text = "Service is disconnected"
             }
         }
-//        let keys: [String] = [
-//            "R-*-*",
-//            "W-*-*",
-//            "A-*-*"
-//        ]
-
-        guard let readKey = readKeyTextField.text else { return }
-        guard let writeKey = writeKeyTextField.text else { return }
-        guard let adminKey = adminKeyTextField.text else { return }
-
-        let keys: [String] = [readKey, writeKey, adminKey]
-
-        pubSubService.connect(keys: keys, sessionUUID: nil)
+        
+        connectionHandler.connect(sessionUUID: nil)
     }
 
     @IBAction func disconnectWS(_ sender: UIBarButtonItem) {
-        guard let service = pubSubService else { return }
+        guard (connectionHandler) != nil else { return }
 
-        service.close()
+        connectionHandler.close()
     }
 
     @IBAction func getSessionUUID(_ sender: UIButton) {
-        guard let service = pubSubService else { return }
+        guard (connectionHandler) != nil else { return }
 
-        service.getSessionUuid() { json in
+        connectionHandler.getSessionUuid() { json in
             do {
                 let id = try PubSubResponseUUID(json: json)
                 DispatchQueue.main.async {
@@ -97,9 +96,9 @@ class WSSMessagingVC: ViewController {
 
     @IBAction func subscribeToChannel(_ sender: UIButton) {
         guard let channelName = channelNameTextField.text, !channelName.isEmpty else { return }
-        guard let service = pubSubService else { return }
+        guard (connectionHandler) != nil else { return }
 
-        service.subscribe(channelName: channelName) { json in
+        connectionHandler.subscribe(channelName: channelName) { json in
 
             do {
                 let subscription = try PubSubResponseSubscription(json: json)
@@ -123,9 +122,9 @@ class WSSMessagingVC: ViewController {
 
     @IBAction func unsubscribeFromCahnnel(_ sender: UIButton) {
         guard let channelName = channelNameTextField.text, !channelName.isEmpty else { return }
-        guard let service = pubSubService else { return }
+        guard (connectionHandler) != nil else { return }
 
-        service.unsubsribe(channelName: channelName) { json in
+        connectionHandler.unsubsribe(channelName: channelName) { json in
             do {
                 let subscription = try PubSubResponseSubscription(json: json)
                 DispatchQueue.main.async {
@@ -147,9 +146,9 @@ class WSSMessagingVC: ViewController {
     }
 
     @IBAction func getAllSubscriptions(_ sender: UIButton) {
-        guard let service = pubSubService else { return }
+        guard (connectionHandler) != nil else { return }
 
-        service.listSubscriptions { json in
+        connectionHandler.listSubscriptions { json in
             do {
                 let subscription = try PubSubResponseSubscription(json: json)
                 DispatchQueue.main.async {
@@ -171,9 +170,9 @@ class WSSMessagingVC: ViewController {
     }
 
     @IBAction func unsubscribeFromAll(_ sender: UIButton) {
-        guard let service = pubSubService else { return }
+        guard (connectionHandler) != nil else { return }
 
-        service.unsubscribeAll{ json in
+        connectionHandler.unsubscribeAll{ json in
             do {
                 let subscription = try PubSubResponseSubscription(json: json)
                 DispatchQueue.main.async {
@@ -200,10 +199,10 @@ class WSSMessagingVC: ViewController {
         let messageText = messageTextView.text!
         let ack = ackSwitch.isOn
 
-        guard let service = pubSubService else { return }
+        guard (connectionHandler) != nil else { return }
 
         if ack {
-            service.publishWithAck(channelName: channel, message: messageText) { json in
+            connectionHandler.publishWithAck(channelName: channel, message: messageText) { json in
                 do {
                     let receivedMessage = try PubSubMessage(json: json)
                     DispatchQueue.main.async {
@@ -230,7 +229,7 @@ class WSSMessagingVC: ViewController {
                 }
             }
         } else {
-            service.publish(channelName: channel, message: messageText) { json in
+            connectionHandler.publish(channelName: channel, message: messageText) { json in
                 do {
                     let receivedMessage = try PubSubMessage(json: json)
                     DispatchQueue.main.async {
