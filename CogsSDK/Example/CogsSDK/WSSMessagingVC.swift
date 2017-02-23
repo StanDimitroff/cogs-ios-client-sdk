@@ -19,7 +19,7 @@ class WSSMessagingVC: ViewController {
     @IBOutlet weak var receivedMessageLabel: UILabel!
     @IBOutlet weak var acknowledgeLabel: UILabel!
 
-    fileprivate var pubSubService: CogsPubSubService!
+    fileprivate var fpubSubService: CogsPubSubService!
     fileprivate var connectionHandler: ConnectionHandle!
 
     override func viewDidLoad() {
@@ -55,10 +55,19 @@ class WSSMessagingVC: ViewController {
             }
         }
 
-        connectionHandler.onClose = {
+        connectionHandler.onClose = { (error) in
+            print(error)
             DispatchQueue.main.async {
                 self.statusLabel.text = "Service is disconnected"
             }
+        }
+
+        connectionHandler.onRawRecord = { (record) in
+            print(record)
+        }
+
+        connectionHandler.onMessage = { (message) in
+            print(message)
         }
         
         connectionHandler.connect(sessionUUID: nil)
@@ -73,125 +82,125 @@ class WSSMessagingVC: ViewController {
     @IBAction func getSessionUUID(_ sender: UIButton) {
         guard (connectionHandler) != nil else { return }
 
-        connectionHandler.getSessionUuid() { json in
-            do {
-                let id = try PubSubResponseUUID(json: json)
-                DispatchQueue.main.async {
-                    self.sessionUUIDLabel.text = id.uuid
-                }
-            } catch {
-                do {
-                    let responseError = try PubSubErrorResponse(json: json)
-                    DispatchQueue.main.async {
-                        self.openAlertWithMessage(message: responseError.message, title: responseError.message)
-                    }
-                } catch {
-                    DispatchQueue.main.async {
-                        self.openAlertWithMessage(message: "\(error)", title: "Error")
-                    }
-                }
-            }
-        }
+        connectionHandler.getSessionUuid() //{ json in
+//            do {
+//                let id = try PubSubResponseUUID(json: json)
+//                DispatchQueue.main.async {
+//                    self.sessionUUIDLabel.text = id.uuid
+//                }
+//            } catch {
+//                do {
+//                    let responseError = try PubSubErrorResponse(json: json)
+//                    DispatchQueue.main.async {
+//                        self.openAlertWithMessage(message: responseError.message, title: responseError.message)
+//                    }
+//                } catch {
+//                    DispatchQueue.main.async {
+//                        self.openAlertWithMessage(message: "\(error)", title: "Error")
+//                    }
+//                }
+//            }
+//        }
     }
 
     @IBAction func subscribeToChannel(_ sender: UIButton) {
         guard let channelName = channelNameTextField.text, !channelName.isEmpty else { return }
         guard (connectionHandler) != nil else { return }
 
-        connectionHandler.subscribe(channelName: channelName) { json in
+        connectionHandler.subscribe(channelName: channelName) //{ json in
 
-            do {
-                let subscription = try PubSubResponseSubscription(json: json)
-                DispatchQueue.main.async {
-                    self.channelListLabel.text = subscription.channels.joined(separator: ", ")
-                }
-            } catch {
-                do {
-                    let responseError = try PubSubErrorResponse(json: json)
-                    DispatchQueue.main.async {
-                        self.openAlertWithMessage(message: responseError.message, title: responseError.message)
-                    }
-                } catch {
-                    DispatchQueue.main.async {
-                        self.openAlertWithMessage(message: "\(error)", title: "Error")
-                    }
-                }
-            }
-        }
+//            do {
+//                let subscription = try PubSubResponseSubscription(json: json)
+//                DispatchQueue.main.async {
+//                    self.channelListLabel.text = subscription.channels.joined(separator: ", ")
+//                }
+//            } catch {
+//                do {
+//                    let responseError = try PubSubErrorResponse(json: json)
+//                    DispatchQueue.main.async {
+//                        self.openAlertWithMessage(message: responseError.message, title: responseError.message)
+//                    }
+//                } catch {
+//                    DispatchQueue.main.async {
+//                        self.openAlertWithMessage(message: "\(error)", title: "Error")
+//                    }
+//                }
+//            }
+//        }
     }
 
     @IBAction func unsubscribeFromCahnnel(_ sender: UIButton) {
         guard let channelName = channelNameTextField.text, !channelName.isEmpty else { return }
         guard (connectionHandler) != nil else { return }
 
-        connectionHandler.unsubsribe(channelName: channelName) { json in
-            do {
-                let subscription = try PubSubResponseSubscription(json: json)
-                DispatchQueue.main.async {
-                    self.channelListLabel.text = subscription.channels.joined(separator: ", ")
-                }
-            } catch {
-                do {
-                    let responseError = try PubSubErrorResponse(json: json)
-                    DispatchQueue.main.async {
-                        self.openAlertWithMessage(message: responseError.message, title: responseError.message)
-                    }
-                } catch {
-                    DispatchQueue.main.async {
-                        self.openAlertWithMessage(message: "\(error)", title: "Error")
-                    }
-                }
-            }
-        }
+        connectionHandler.unsubsribe(channelName: channelName) //{ //json in
+//            do {
+//                let subscription = try PubSubResponseSubscription(json: json)
+//                DispatchQueue.main.async {
+//                    self.channelListLabel.text = subscription.channels.joined(separator: ", ")
+//                }
+//            } catch {
+//                do {
+//                    let responseError = try PubSubErrorResponse(json: json)
+//                    DispatchQueue.main.async {
+//                        self.openAlertWithMessage(message: responseError.message, title: responseError.message)
+//                    }
+//                } catch {
+//                    DispatchQueue.main.async {
+//                        self.openAlertWithMessage(message: "\(error)", title: "Error")
+//                    }
+//                }
+//            }
+//        }
     }
 
     @IBAction func getAllSubscriptions(_ sender: UIButton) {
         guard (connectionHandler) != nil else { return }
 
-        connectionHandler.listSubscriptions { json in
-            do {
-                let subscription = try PubSubResponseSubscription(json: json)
-                DispatchQueue.main.async {
-                    self.channelListLabel.text = subscription.channels.joined(separator: ", ")
-                }
-            } catch {
-                do {
-                    let responseError = try PubSubErrorResponse(json: json)
-                    DispatchQueue.main.async {
-                        self.openAlertWithMessage(message: responseError.message, title: responseError.message)
-                    }
-                } catch {
-                    DispatchQueue.main.async {
-                        self.openAlertWithMessage(message: "\(error)", title: "Error")
-                    }
-                }
-            }
-        }
+        connectionHandler.listSubscriptions() //{ json in
+//            do {
+//                let subscription = try PubSubResponseSubscription(json: json)
+//                DispatchQueue.main.async {
+//                    self.channelListLabel.text = subscription.channels.joined(separator: ", ")
+//                }
+//            } catch {
+//                do {
+//                    let responseError = try PubSubErrorResponse(json: json)
+//                    DispatchQueue.main.async {
+//                        self.openAlertWithMessage(message: responseError.message, title: responseError.message)
+//                    }
+//                } catch {
+//                    DispatchQueue.main.async {
+//                        self.openAlertWithMessage(message: "\(error)", title: "Error")
+//                    }
+//                }
+//            }
+//        }
     }
 
     @IBAction func unsubscribeFromAll(_ sender: UIButton) {
         guard (connectionHandler) != nil else { return }
 
-        connectionHandler.unsubscribeAll{ json in
-            do {
-                let subscription = try PubSubResponseSubscription(json: json)
-                DispatchQueue.main.async {
-                    self.channelListLabel.text = subscription.channels.joined(separator: ", ")
-                }
-
-            } catch {
-                do {
-                    let responseError = try PubSubErrorResponse(json: json)
-                    DispatchQueue.main.async {
-                        self.openAlertWithMessage(message: responseError.message, title: responseError.message)
-                    }
-                } catch {
-                    DispatchQueue.main.async {
-                        self.openAlertWithMessage(message: "\(error)", title: "Error")
-                    }
-                }
-            }
-        }
+        connectionHandler.unsubscribeAll() //{ json in
+//            do {
+//                let subscription = try PubSubResponseSubscription(json: json)
+//                DispatchQueue.main.async {
+//                    self.channelListLabel.text = subscription.channels.joined(separator: ", ")
+//                }
+//
+//            } catch {
+//                do {
+//                    let responseError = try PubSubErrorResponse(json: json)
+//                    DispatchQueue.main.async {
+//                        self.openAlertWithMessage(message: responseError.message, title: responseError.message)
+//                    }
+//                } catch {
+//                    DispatchQueue.main.async {
+//                        self.openAlertWithMessage(message: "\(error)", title: "Error")
+//                    }
+//                }
+//            }
+//        }
     }
 
     @IBAction func publishMessage(_ sender: UIButton) {
@@ -202,52 +211,52 @@ class WSSMessagingVC: ViewController {
         guard (connectionHandler) != nil else { return }
 
         if ack {
-            connectionHandler.publishWithAck(channelName: channel, message: messageText) { json in
-                do {
-                    let receivedMessage = try PubSubMessage(json: json)
-                    DispatchQueue.main.async {
-                        self.receivedMessageLabel.text = receivedMessage.message
-                    }
-                } catch {
-                    do {
-                        let acknowledge = try PubSubResponse(json: json)
-                        DispatchQueue.main.async {
-                            self.acknowledgeLabel.text = "\(acknowledge.description)"
-                        }
-                    } catch {
-                        do {
-                            let responseError = try PubSubErrorResponse(json: json)
-                            DispatchQueue.main.async {
-                                self.openAlertWithMessage(message: responseError.message, title: responseError.message)
-                            }
-                        } catch {
-                            DispatchQueue.main.async {
-                                self.openAlertWithMessage(message: "\(error)", title: "Error")
-                            }
-                        }
-                    }
-                }
-            }
+            connectionHandler.publishWithAck(channelName: channel, message: messageText)// { json in
+//                do {
+//                    let receivedMessage = try PubSubMessage(json: json)
+//                    DispatchQueue.main.async {
+//                        self.receivedMessageLabel.text = receivedMessage.message
+//                    }
+//                } catch {
+//                    do {
+//                        let acknowledge = try PubSubResponse(json: json)
+//                        DispatchQueue.main.async {
+//                            self.acknowledgeLabel.text = "\(acknowledge.description)"
+//                        }
+//                    } catch {
+//                        do {
+//                            let responseError = try PubSubErrorResponse(json: json)
+//                            DispatchQueue.main.async {
+//                                self.openAlertWithMessage(message: responseError.message, title: responseError.message)
+//                            }
+//                        } catch {
+//                            DispatchQueue.main.async {
+//                                self.openAlertWithMessage(message: "\(error)", title: "Error")
+//                            }
+//                        }
+//                    }
+//                }
+//            }
         } else {
-            connectionHandler.publish(channelName: channel, message: messageText) { json in
-                do {
-                    let receivedMessage = try PubSubMessage(json: json)
-                    DispatchQueue.main.async {
-                        self.receivedMessageLabel.text = receivedMessage.message
-                    }
-                } catch {
-                    do {
-                        let responseError = try PubSubErrorResponse(json: json)
-                        DispatchQueue.main.async {
-                            self.openAlertWithMessage(message: responseError.message, title: responseError.message)
-                        }
-                    } catch {
-                        DispatchQueue.main.async {
-                            self.openAlertWithMessage(message: "\(error)", title: "Error")
-                        }
-                    }
-                }
-            }
+            connectionHandler.publish(channelName: channel, message: messageText) //{ json in
+//                do {
+//                    let receivedMessage = try PubSubMessage(json: json)
+//                    DispatchQueue.main.async {
+//                        self.receivedMessageLabel.text = receivedMessage.message
+//                    }
+//                } catch {
+//                    do {
+//                        let responseError = try PubSubErrorResponse(json: json)
+//                        DispatchQueue.main.async {
+//                            self.openAlertWithMessage(message: responseError.message, title: responseError.message)
+//                        }
+//                    } catch {
+//                        DispatchQueue.main.async {
+//                            self.openAlertWithMessage(message: "\(error)", title: "Error")
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 

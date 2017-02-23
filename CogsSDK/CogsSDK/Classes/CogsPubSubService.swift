@@ -12,6 +12,5 @@ public class CogsPubSubService {
         
         return ConnectionHandle(keys: keys, options: options)
     }
-  
 }
 

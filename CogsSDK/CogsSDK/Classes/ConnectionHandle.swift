@@ -12,11 +12,13 @@ public class ConnectionHandle {
     private var sessionUUID: String?
     private var sequence: Int = 0
     
-    
     public var onNewSession: ((String) -> ())?
     public var onReconnect: (() -> ())?
-    public var onClose: (() -> ())?
-    public var onError: ((Error?) -> ())?
+    public var onClose: ((Error?) -> ())?
+    public var onError: ((Error) -> ())?
+    public var onErrorResponse: ((PubSubErrorResponse) -> ())?
+    public var onMessage: ((PubSubMessage) -> ())?
+    public var onRawRecord: ((RawRecord) -> ())?
     
     public init(keys: [String], options: PubSubOptions) {
         
@@ -27,30 +29,39 @@ public class ConnectionHandle {
         webSocket.timeout = self.options.connectionTimeout
         
         webSocket.onConnect = {
-            
-            self.getSessionUuid(completion: { json in
-                do {
-                    let id = try PubSubResponseUUID(json: json).uuid
-                    
-                    if id == self.sessionUUID {
-                        self.onReconnect?()
-                    } else {
-                        self.onNewSession?(id)
-                    }
-                    
-                    self.sessionUUID = id
-                } catch {
-                    
-                }
-            })
+            self.getSessionUuid()
         }
         
         webSocket.onDisconnect = { (error: NSError?) in
-            self.onClose?()
+            self.onClose?(error)
             
             if self.options.autoReconnect {
                 self.connect(sessionUUID: self.sessionUUID)
             }
+        }
+
+        webSocket.onText = { (text: String) in
+            DialectValidator.parseAndAutoValidate(record: text, completionHandler: { (object, error, responseError) in
+                if let error = error {
+                    self.onError?(error)
+                } else if let respError = responseError {
+                    self.onErrorResponse?(respError)
+                } else if let obj = object {
+                    if let message = object as? PubSubMessage {
+                        self.onMessage?(message)
+                    } else if let sessionUUID = object as? PubSubResponseUUID {
+                        if sessionUUID.uuid == self.sessionUUID {
+                            self.onReconnect?()
+                        } else {
+                            self.onNewSession?(sessionUUID.uuid)
+                        }
+
+                        self.sessionUUID = sessionUUID.uuid
+                    } else {
+                        self.onRawRecord?(text)
+                    }
+                }
+            })
         }
     }
     
@@ -79,88 +90,58 @@ public class ConnectionHandle {
     }
     
     /// Getting session UUID
-    ///
-    /// - Parameter completion: completion handler with the JSON response
-    public func getSessionUuid(completion: @escaping ((JSON) -> ())) {
+    public func getSessionUuid() {
         let params: [String: Any] = [
             "seq": sequence + 1,
             "action": "session-uuid"
         ]
-        
-        webSocket.onText = { (text: String) in
-            completion(self.parseResponse(text)!)
-        }
-        
+
         writeToSocket(params: params)
     }
     
     /// Subscribing to a channel
     ///
-    /// - Parameters:
-    ///   - channelName: the name of the channel to subscribe
-    ///   - completion: completion handler with the JSON response
-    public func subscribe(channelName: String, completion: @escaping ((JSON) -> ())) {
+    /// - Parameter channelName: the name of the channel to subscribe
+    public func subscribe(channelName: String) {
         let params: [String: Any] = [
             "seq": sequence + 1,
             "action": "subscribe",
             "channel": channelName
         ]
-        
-        webSocket.onText = { (text: String) in
-            completion(self.parseResponse(text)!)
-        }
-        
+
         writeToSocket(params: params)
     }
     
     /// Unsubscribing from a channel
     ///
-    /// - Parameters:
-    ///   - channelName: the name of the channel to unsubscribe from
-    ///   - completion: completion handler with the JSON response
-    public func unsubsribe(channelName: String, completion: @escaping ((JSON) -> ())) {
+    /// - Parameter channelName: the name of the channel to unsubscribe from
+    public func unsubsribe(channelName: String) {
         let params: [String: Any] = [
             "seq": sequence + 1,
             "action": "unsubscribe",
             "channel": channelName
         ]
-        
-        webSocket.onText = { (text: String) in
-            completion(self.parseResponse(text)!)
-        }
-        
+
         writeToSocket(params: params)
     }
     
     /// Unsubscribing from all channels
-    ///
-    /// - Parameter completion: completion handler with the JSON response
-    public func unsubscribeAll(completion: @escaping ((JSON) -> ())) {
+    public func unsubscribeAll() {
         let params: [String: Any] = [
             "seq": sequence + 1,
             "action": "unsubscribe-all"
         ]
-        
-        webSocket.onText = { (text: String) in
-            completion(self.parseResponse(text)!)
-        }
-        
+
         writeToSocket(params: params)
     }
     
     /// Gets all subscriptions
-    ///
-    /// - Parameter completion: completion handler with the JSON response
-    public func listSubscriptions(completion: @escaping ((JSON) -> ())) {
+    public func listSubscriptions() {
         let params: [String: Any] = [
             "seq": sequence + 1,
             "action": "subscriptions"
         ]
-        
-        webSocket.onText = { (text: String) in
-            completion(self.parseResponse(text)!)
-        }
-        
+
         writeToSocket(params: params)
     }
     
@@ -170,8 +151,7 @@ public class ConnectionHandle {
     ///   - channelName: the channel where message will be published
     ///   - message: the message to publish
     ///   - acknowledgement: acknowledgement for the published message
-    ///   - completion: completion handler with the JSON response
-    public func publish(channelName: String, message: String, acknowledgement: Bool? = false, completion: @escaping ((JSON) -> ())) {
+    public func publish(channelName: String, message: String, acknowledgement: Bool? = false) {
         let params: [String: Any] = [
             "seq": sequence + 1,
             "action": "pub",
@@ -179,18 +159,17 @@ public class ConnectionHandle {
             "msg": message,
             "ack": acknowledgement
         ]
-        
-        webSocket.onText = { (text: String) in
-            completion(self.parseResponse(text)!)
-        }
-        
+
         writeToSocket(params: params)
     }
-    
-    public func publishWithAck(channelName: String, message: String, completion: @escaping ((JSON) -> ())) {
-        self.publish(channelName: channelName, message: message, acknowledgement: true) { json in
-            completion(json)
-        }
+
+    /// Publishing a message to a channel with acknowledgement
+    ///
+    /// - Parameters:
+    ///   - channelName: the channel where message will be published
+    ///   - message: the message to publish
+    public func publishWithAck(channelName: String, message: String) {
+        self.publish(channelName: channelName, message: message, acknowledgement: true)
     }
     
     private func writeToSocket(params: [String: Any]) {
@@ -202,7 +181,9 @@ public class ConnectionHandle {
         
         do {
             let data: Data = try JSONSerialization.data(withJSONObject: params, options: .init(rawValue: 0))
-            webSocket.write(data: data)
+            webSocket.write(data: data) { _ in
+                self.sequence = params["seq"] as! Int
+            }
         } catch {
             assertionFailure(error.localizedDescription)
         }
@@ -217,5 +198,4 @@ public class ConnectionHandle {
             return nil
         }
     }
-    
 }
