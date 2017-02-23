@@ -33,8 +33,18 @@ public class ConnectionHandle {
         }
         
         webSocket.onDisconnect = { (error: NSError?) in
-            self.onClose?(error)
-            
+//<<<<<<< HEAD
+//            self.onClose?(error)
+//=======
+//            
+//            if (error != nil) {
+//                self.onError?(error)
+//            }
+//            else {
+//               self.onClose?()
+//            }
+//>>>>>>> c57d02cf0e3f816d1b6d2ee50f8aa9c74216931b
+
             if self.options.autoReconnect {
                 self.connect(sessionUUID: self.sessionUUID)
             }
@@ -91,8 +101,9 @@ public class ConnectionHandle {
     
     /// Getting session UUID
     public func getSessionUuid() {
+        sequence += 1
         let params: [String: Any] = [
-            "seq": sequence + 1,
+            "seq": sequence ,
             "action": "session-uuid"
         ]
 
@@ -103,8 +114,9 @@ public class ConnectionHandle {
     ///
     /// - Parameter channelName: the name of the channel to subscribe
     public func subscribe(channelName: String) {
+        sequence += 1
         let params: [String: Any] = [
-            "seq": sequence + 1,
+            "seq": sequence,
             "action": "subscribe",
             "channel": channelName
         ]
@@ -116,8 +128,10 @@ public class ConnectionHandle {
     ///
     /// - Parameter channelName: the name of the channel to unsubscribe from
     public func unsubsribe(channelName: String) {
+        sequence += 1
+
         let params: [String: Any] = [
-            "seq": sequence + 1,
+            "seq": sequence,
             "action": "unsubscribe",
             "channel": channelName
         ]
@@ -127,8 +141,9 @@ public class ConnectionHandle {
     
     /// Unsubscribing from all channels
     public func unsubscribeAll() {
+        sequence += 1
         let params: [String: Any] = [
-            "seq": sequence + 1,
+            "seq": sequence,
             "action": "unsubscribe-all"
         ]
 
@@ -137,8 +152,9 @@ public class ConnectionHandle {
     
     /// Gets all subscriptions
     public func listSubscriptions() {
+        sequence += 1
         let params: [String: Any] = [
-            "seq": sequence + 1,
+            "seq": sequence,
             "action": "subscriptions"
         ]
 
@@ -152,8 +168,9 @@ public class ConnectionHandle {
     ///   - message: the message to publish
     ///   - acknowledgement: acknowledgement for the published message
     public func publish(channelName: String, message: String, acknowledgement: Bool? = false) {
+        sequence += 1
         let params: [String: Any] = [
-            "seq": sequence + 1,
+            "seq": sequence,
             "action": "pub",
             "chan": channelName,
             "msg": message,
