@@ -46,7 +46,13 @@ public class ConnectionHandle {
         }
         
         webSocket.onDisconnect = { (error: NSError?) in
-            self.onClose?()
+            
+            if (error != nil) {
+                self.onError?(error)
+            }
+            else {
+               self.onClose?()
+            }
             
             if self.options.autoReconnect {
                 self.connect(sessionUUID: self.sessionUUID)
@@ -82,8 +88,9 @@ public class ConnectionHandle {
     ///
     /// - Parameter completion: completion handler with the JSON response
     public func getSessionUuid(completion: @escaping ((JSON) -> ())) {
+        sequence += 1
         let params: [String: Any] = [
-            "seq": sequence + 1,
+            "seq": sequence ,
             "action": "session-uuid"
         ]
         
@@ -100,8 +107,9 @@ public class ConnectionHandle {
     ///   - channelName: the name of the channel to subscribe
     ///   - completion: completion handler with the JSON response
     public func subscribe(channelName: String, completion: @escaping ((JSON) -> ())) {
+        sequence += 1
         let params: [String: Any] = [
-            "seq": sequence + 1,
+            "seq": sequence,
             "action": "subscribe",
             "channel": channelName
         ]
@@ -119,8 +127,9 @@ public class ConnectionHandle {
     ///   - channelName: the name of the channel to unsubscribe from
     ///   - completion: completion handler with the JSON response
     public func unsubsribe(channelName: String, completion: @escaping ((JSON) -> ())) {
+        sequence += 1
         let params: [String: Any] = [
-            "seq": sequence + 1,
+            "seq": sequence,
             "action": "unsubscribe",
             "channel": channelName
         ]
@@ -136,8 +145,9 @@ public class ConnectionHandle {
     ///
     /// - Parameter completion: completion handler with the JSON response
     public func unsubscribeAll(completion: @escaping ((JSON) -> ())) {
+        sequence += 1
         let params: [String: Any] = [
-            "seq": sequence + 1,
+            "seq": sequence,
             "action": "unsubscribe-all"
         ]
         
@@ -152,8 +162,9 @@ public class ConnectionHandle {
     ///
     /// - Parameter completion: completion handler with the JSON response
     public func listSubscriptions(completion: @escaping ((JSON) -> ())) {
+        sequence += 1
         let params: [String: Any] = [
-            "seq": sequence + 1,
+            "seq": sequence,
             "action": "subscriptions"
         ]
         
@@ -172,8 +183,9 @@ public class ConnectionHandle {
     ///   - acknowledgement: acknowledgement for the published message
     ///   - completion: completion handler with the JSON response
     public func publish(channelName: String, message: String, acknowledgement: Bool? = false, completion: @escaping ((JSON) -> ())) {
+        sequence += 1
         let params: [String: Any] = [
-            "seq": sequence + 1,
+            "seq": sequence,
             "action": "pub",
             "chan": channelName,
             "msg": message,

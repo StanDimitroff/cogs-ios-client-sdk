@@ -45,7 +45,7 @@ class WSSMessagingVC: ViewController {
         
         connectionHandler.onNewSession = { sessionUUID in
             DispatchQueue.main.async {
-                self.statusLabel.text = "New session with uuid \(sessionUUID) is opened"
+                self.statusLabel.text = "New session is opened"
             }
         }
 
