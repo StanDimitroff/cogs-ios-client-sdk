@@ -4,7 +4,7 @@ import Starscream
 
 public class ConnectionHandle {
    
-    private let defaultReconnectDelay: Int = 5000
+    private let defaultReconnectDelay: Double = 5
     
     private var webSocket : WebSocket
     private var options: PubSubOptions
@@ -40,11 +40,13 @@ public class ConnectionHandle {
             self.onClose?(nil)
 
             if self.options.autoReconnect {
-                self.connect(sessionUUID: self.sessionUUID)
+                Timer.scheduledTimer(timeInterval: self.defaultReconnectDelay, target: self, selector: #selector(self.reconnect(_:)), userInfo: nil, repeats: false)
             }
         }
 
         webSocket.onText = { (text: String) in
+            self.onRawRecord?(text)
+            
             DialectValidator.parseAndAutoValidate(record: text, completionHandler: { (json, error, responseError) in
                 if let error = error {
                     self.onError?(error)
@@ -56,7 +58,7 @@ public class ConnectionHandle {
 
                         if sessionUUID.uuid == self.sessionUUID {
                             self.onReconnect?()
-                            self.onRawRecord?(text)
+                            //self.onRawRecord?(text)
                         } else {
                             self.onNewSession?(sessionUUID.uuid)
                         }
@@ -67,7 +69,7 @@ public class ConnectionHandle {
                             let message = try PubSubMessage(json: j)
                             self.onMessage?(message)
                         } catch {
-                            self.onRawRecord?(text)
+                            //self.onRawRecord?(text)
                         }
                     }
                 }
@@ -195,8 +197,8 @@ public class ConnectionHandle {
     
     private func writeToSocket(params: [String: Any]) {
         guard webSocket.isConnected else {
-            assertionFailure("Web socket is disconnected")
-            
+            self.onError?(NSError(domain: WebSocket.ErrorDomain, code: Int(100), userInfo: [NSLocalizedDescriptionKey: "Web socket is disconnected"]))
+            //assertionFailure("Web socket is disconnected")
             return
         }
         
@@ -204,7 +206,12 @@ public class ConnectionHandle {
             let data: Data = try JSONSerialization.data(withJSONObject: params, options: .init(rawValue: 0))
             webSocket.write(data: data)
         } catch {
-            assertionFailure(error.localizedDescription)
+            self.onError?(error)
+            //assertionFailure(error.localizedDescription)
         }
+    }
+    
+    @objc private func reconnect(_ timer: Timer) {
+        self.connect(sessionUUID: self.sessionUUID)
     }
 }
