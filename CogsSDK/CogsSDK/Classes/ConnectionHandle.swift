@@ -2,7 +2,6 @@
 import Foundation
 import Starscream
 
-
 public class ConnectionHandle {
    
     private let defaultReconnectDelay: Double = 5
@@ -19,7 +18,7 @@ public class ConnectionHandle {
     public var onReconnect: (() -> ())?
     public var onClose: ((Error?) -> ())?
     public var onError: ((Error) -> ())?
-    public var onErrorResponse: ((PubSubErrorResponse) -> ())?
+    public var onErrorResponse: ((PubSubResponseError) -> ())?
     public var onMessage: ((PubSubMessage) -> ())?
     public var onRawRecord: ((RawRecord) -> ())?
     
@@ -39,9 +38,9 @@ public class ConnectionHandle {
         webSocket.onDisconnect = { (error: NSError?) in
             if let err = error, err.code != 1000 {
                 self.onClose?(error)
+            } else {
+                self.onClose?(nil)
             }
-
-            self.onClose?(nil)
 
             if self.options.autoReconnect {
                 Timer.scheduledTimer(timeInterval: self.defaultReconnectDelay, target: self, selector: #selector(self.reconnect(_:)), userInfo: nil, repeats: false)

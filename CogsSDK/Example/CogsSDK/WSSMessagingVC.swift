@@ -24,7 +24,16 @@ class WSSMessagingVC: ViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
+        if let path = Bundle.main.path(forResource: "Keys", ofType: "plist") {
+
+            if let dict = NSDictionary(contentsOfFile: path) as? [String: Any] {
+                self.urlTextField.text = dict["url"] as? String
+                self.readKeyTextField.text = dict["readKey"] as? String
+                self.writeKeyTextField.text = dict["writeKey"] as? String
+                self.adminKeyTextField.text = dict["adminKey"] as? String
+            }
+        }
     }
 
     @IBAction func connectWS(_ sender: UIBarButtonItem) {
@@ -87,10 +96,10 @@ class WSSMessagingVC: ViewController {
                             self.channelListLabel.text = subscription.channels.joined(separator: ", ")
                         }
                     } catch {
-                        let error = NSError(domain: "CogsSDKError - PubSub Response", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
-                        DispatchQueue.main.async {
-                            self.openAlertWithMessage(message: error.localizedDescription, title: "PubSub Error")
-                        }
+//                        let error = NSError(domain: "CogsSDKError - PubSub Response", code: 1, userInfo: [NSLocalizedDescriptionKey: "Bad JSON"])
+//                        DispatchQueue.main.async {
+//                            //self.openAlertWithMessage(message: error.localizedDescription, title: "PubSub Error")
+//                        }
                     }
                 }
             } catch {
@@ -116,7 +125,7 @@ class WSSMessagingVC: ViewController {
 
         connectionHandler.onErrorResponse = { (responseError) in
             DispatchQueue.main.async {
-                self.openAlertWithMessage(message: responseError.message, title: "PubSub Response Error")
+                self.openAlertWithMessage(message: "\(responseError.message) \n \(responseError.code)", title: "PubSub Response Error")
             }
         }
         
@@ -162,7 +171,7 @@ class WSSMessagingVC: ViewController {
     }
 
     @IBAction func publishMessage(_ sender: UIButton) {
-        guard let channel = channelNameTextField.text, !channel.isEmpty else { return }
+        guard let channel = messageChannelTextField.text, !channel.isEmpty else { return }
         let messageText = messageTextView.text!
         let ack = ackSwitch.isOn
 
