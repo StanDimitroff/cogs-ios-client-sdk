@@ -2,6 +2,7 @@
 import Foundation
 import Starscream
 
+
 public class ConnectionHandle {
    
     private let defaultReconnectDelay: Double = 5
@@ -11,6 +12,8 @@ public class ConnectionHandle {
     private var keys: [String]!
     private var sessionUUID: String?
     private var sequence: Int = 0
+    private var handlerDispatcher = HandlersCache()
+    private var callbackQueue = DispatchQueue.main
     
     public var onNewSession: ((String) -> ())?
     public var onReconnect: (() -> ())?
@@ -19,6 +22,7 @@ public class ConnectionHandle {
     public var onErrorResponse: ((PubSubErrorResponse) -> ())?
     public var onMessage: ((PubSubMessage) -> ())?
     public var onRawRecord: ((RawRecord) -> ())?
+    
     
     public init(keys: [String], options: PubSubOptions) {
         
